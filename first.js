@@ -8,6 +8,7 @@ const inputDistance = document.querySelector(".form__input--distance");
 const inputDuration = document.querySelector(".form__input--duration");
 const inputCadence = document.querySelector(".form__input--cadence");
 const inputElevation = document.querySelector(".form__input--elevation");
+let map, mapEvent;
 
 if (navigator.geolocation)
   navigator.geolocation.getCurrentPosition(
@@ -16,10 +17,61 @@ if (navigator.geolocation)
       const { longitude } = position.coords;
 
       console.log(
-        `https://www.google.com/maps/place/Kanchanrup/@{longitude},{latitude},12z/data=!3m1!4b1!4m6!3m5!1s0x39eee211226e75db:0xb7eabbe88a358584!8m2!3d26.6448831!4d86.8822445!16s%2Fm%2F04zx96d?entry=ttu&g_ep=EgoyMDI0MTAyMi4wIKXMDSoASAFQAw%3D%3D`
+        `https://www.google.com/maps/place/Kanchanrup/@${longitude},${latitude}`
       );
+
+      const coords = [latitude, longitude];
+
+      map = L.map("map").setView(coords, 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      map.on("click", function (mapE) {
+        mapEvent = mapE;
+        form.classList.remove("hidden");
+        inputDistance.focus();
+      });
     },
+
     function () {
       alert("Could not access your location");
     }
   );
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  //clear input field
+
+  inputCadence.value =
+    inputDistance.value =
+    inputDuration.value =
+    inputDuration.value =
+      "";
+  // /displaying marker
+
+  console.log(mapEvent);
+  const { lat, lng } = mapEvent.latlng;
+
+  L.marker([lat, lng])
+    .addTo(map)
+    .bindPopup(
+      L.popup({
+        maxWidth: 250,
+        minWidth: 100,
+        autoClose: false,
+        closeOnClick: false,
+        className: "running-popup",
+      })
+    )
+    .setPopupContent("WorkOut")
+    .openPopup();
+});
+
+inputType.addEventListener("change", function () {
+  inputElevation.closest(".form__row").classList.toggle("form__row--hidden");
+  inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
+});
